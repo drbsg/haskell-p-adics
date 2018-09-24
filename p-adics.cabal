@@ -17,7 +17,8 @@ category:            Math, Number Theory
 
 library
   hs-source-dirs:      src
-  exposed-modules:     PAdics
+  exposed-modules:     Math.PAdic.Z
+                     , Math.PAdic.Q
   build-depends:       base >= 4.7 && < 5
                      , extended-reals
   default-language:    Haskell2010
