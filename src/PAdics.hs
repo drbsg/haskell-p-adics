@@ -14,17 +14,21 @@ import Data.Proxy
 type Valuation = Extended Int
 
 -- Represent a p-adic number as a p-adic integer and a power of p.
--- All leading zero digits are given implicitly by the valuation.
-data Q (p :: Nat) = Q { valuation :: Valuation, digits :: [Integer] }
+data Q (p :: Nat) = Q { offset :: Valuation, digits :: [Integer] }
+
+
+valuation :: forall p. KnownNat p => Q p -> Valuation
+valuation (Q NegInf _) = undefined
+valuation (Q PosInf _) = PosInf
+valuation (Q v ds) = v + (Finite . length $ takeWhile (==0) ds)
 
 
 fromInteger' :: forall p. KnownNat p => Integer -> Q p
-fromInteger' n = Q v ds'
+fromInteger' n = Q v ds
   where p = fromIntegral $ natVal (Proxy @p) :: Integer
         go n' = let (q, r) = n' `divMod` p in Just (r, q)
         ds = unfoldr go n
-        v = if n == 0 then PosInf else Finite $ length $ takeWhile (==0) ds
-        ds' = dropWhile (==0) ds
+        v = if n == 0 then PosInf else Finite 0
 
 
 expansion :: forall p. KnownNat p => Q p -> [(Int, Integer)]
@@ -46,9 +50,8 @@ add (Q (Finite v1) ds1) (Q (Finite v2) ds2) =
       ds1' = replicate (v1 - v) 0 ++ ds1
       ds2' = replicate (v2 - v) 0 ++ ds2
       ds = go ds1' ds2' 0
-      v' = Finite (length $ takeWhile (==0) ds) + Finite v
-      ds' = dropWhile (==0) ds
-  in Q v' ds'
+      v' = Finite v
+  in Q v' ds
   where go (x:xs) (y:ys) carry =
           let p = fromIntegral $ natVal (Proxy @p)
               sum = x + y + carry
