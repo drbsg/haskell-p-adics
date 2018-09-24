@@ -20,7 +20,7 @@ instance KnownNat p => Num (Q p) where
   (+) = add
   (*) = multiply
   negate = negate'
-  abs = undefined
+  abs = abs'
   signum = undefined
   fromInteger = fromInteger'
 
@@ -28,6 +28,22 @@ instance KnownNat p => Num (Q p) where
 -- Temporary version.
 instance KnownNat p => Show (Q p) where
   show (Q n z) = "Q " ++ show n ++ " " ++ show z
+
+
+valuation :: forall p. KnownNat p => Q p -> Int
+valuation (Q n z) = n + Z.valuation z
+
+
+-- p-adic absolute value returning a p-adic result.
+abs' :: forall p. KnownNat p => Q p -> Q p
+abs' q = Q (-(valuation q)) 1
+
+
+-- The more usual p-adic absolute value expressed over the reals (well, floats).
+norm :: forall p a. (KnownNat p, Floating a) => Q p -> a
+norm q = let p = fromIntegral $ natVal (Proxy @p)
+             (Q v _) = abs q
+         in p ** (fromIntegral v)
 
 
 fromInteger' :: forall p. KnownNat p => Integer -> Q p

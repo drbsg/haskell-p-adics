@@ -27,6 +27,10 @@ instance KnownNat p => Num (Z p) where
   fromInteger = fromInteger'
 
 
+valuation :: forall p. KnownNat p => Z p -> Int
+valuation (Z ds) = length $ takeWhile (==0) ds
+
+
 add :: forall p. KnownNat p => Z p -> Z p -> Z p
 add (Z digits1) (Z digits2) = Z $ go digits1 digits2 0
   where go (x:xs) (y:ys) carry =
