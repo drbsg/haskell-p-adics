@@ -40,6 +40,7 @@ abs' q = Q (-(valuation q)) 1
 
 
 -- The more usual p-adic absolute value expressed over the reals (well, floats).
+-- This looks like a candidate for a typeclass.
 norm :: forall p a. (KnownNat p, Floating a) => Q p -> a
 norm q = let p = fromIntegral $ natVal (Proxy @p)
              (Q v _) = abs q

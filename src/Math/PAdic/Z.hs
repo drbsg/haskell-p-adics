@@ -22,13 +22,20 @@ instance KnownNat p => Num (Z p) where
   (+) = add
   (*) = multiply
   negate = negate'
-  abs = undefined
+  abs = undefined               -- Cannot be defined for Z p with the usual signature.
   signum = undefined
   fromInteger = fromInteger'
 
 
 valuation :: forall p. KnownNat p => Z p -> Int
 valuation (Z ds) = length $ takeWhile (==0) ds
+
+
+-- This looks like a candidate for a typeclass.
+norm :: forall p a. (KnownNat p, Floating a) => Z p -> a
+norm z = let p = fromIntegral $ natVal (Proxy @p)
+             v = fromIntegral $ valuation z
+         in p ** (-v)
 
 
 add :: forall p. KnownNat p => Z p -> Z p -> Z p
