@@ -56,6 +56,17 @@ add (Q (Finite v1) ds1) (Q (Finite v2) ds2) =
           in [sum'] ++ go xs ys carry'
 
 
+negate' :: forall p. KnownNat p => Q p -> Q p
+negate' (Q NegInf _) = undefined
+negate' q1@(Q PosInf _) = q1
+negate' (Q (Finite v) ds) = Q (Finite v) (go ds 0)
+  where go (x:xs) carry =
+          let p = fromIntegral $ natVal (Proxy @p)
+              d = - x - carry
+              (d', carry') = if d < 0 then (p + d, 1) else (d, 0)
+          in [d'] ++ go xs carry'
+
+
 -- Show the p-adic number up to the given order in p.
 -- NOTE: Not implementing Show at this time.
 showUpto :: forall p. KnownNat p => Int -> Q p -> String
@@ -65,7 +76,7 @@ showUpto n q = intercalate " + " $ fmap (\(e, d) -> show d ++ "p^" ++ show e) $ 
 instance KnownNat p => Num (Q p) where
   (+) = add
   (*) = undefined
-  negate = undefined
+  negate = negate'
   abs = undefined
   signum = undefined
   fromInteger = fromInteger'
