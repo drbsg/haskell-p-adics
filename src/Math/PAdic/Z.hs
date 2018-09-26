@@ -5,6 +5,7 @@
 
 module Math.PAdic.Z where
 
+import GHC.Natural
 import GHC.TypeNats
 import Data.List (inits, unfoldr)
 import Data.Proxy
@@ -23,7 +24,7 @@ instance KnownNat p => Num (Z p) where
   (*) = multiply
   negate = negate'
   abs = undefined               -- Cannot be defined for Z p with the usual signature.
-  signum = undefined
+  signum = signum'
   fromInteger = fromInteger'
 
 
@@ -72,3 +73,24 @@ fromInteger' n = Z $ unfoldr f n
   where f a = let p = fromIntegral $ natVal (Proxy @p)
                   (q, r) = a `divMod` p
               in Just (r, q)
+
+
+pow' :: Num a => Natural -> a -> a
+pow' n a | n == 0 = 1
+         | n `mod` 2 == 0 = let r = pow' (n `div` 2) a in r*r
+         | otherwise = a * (pow' (n-1) a)
+
+
+-- Hardcoded limit to the exponent for now. You appear to get approximately n+1
+-- correct digits for an exponent of n.
+--
+-- NOTE: For non-zero d, signum' d is a (p-1)th root of unity,
+-- so pow' p (signum' d) - (signum' d) == 0 should hold.
+--
+-- (This sets aside the issue of computability of equality. But for a fixed
+-- number of digits we can see that this holds.)
+signum' :: forall p. KnownNat p => Z p -> Z p
+signum' (Z (d:_)) =
+  if d == 0 then 0
+  else let p = fromIntegral $ natVal (Proxy @p)
+       in pow' (pow' 10 p) $ fromInteger' d
