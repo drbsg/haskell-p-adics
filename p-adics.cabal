@@ -20,6 +20,7 @@ library
   exposed-modules:     Math.PAdic.Z
                      , Math.PAdic.Q
                      , Math.PAdic.Finite.Z
+                     , Math.PAdic.Finite.Q
   build-depends:       base >= 4.7 && < 5
                      , extended-reals
   default-language:    Haskell2010
