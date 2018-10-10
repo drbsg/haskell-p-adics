@@ -24,7 +24,7 @@ instance KnownNat p => Num (Z p) where
   (*) = multiply
   negate = negate'
   abs = undefined               -- Cannot be defined for Z p with the usual signature.
-  signum = signum'
+  signum = signum' 10
   fromInteger = fromInteger'
 
 
@@ -89,8 +89,8 @@ pow' n a | n == 0 = 1
 --
 -- (This sets aside the issue of computability of equality. But for a fixed
 -- number of digits we can see that this holds.)
-signum' :: forall p. KnownNat p => Z p -> Z p
-signum' (Z (d:_)) =
+signum' :: forall p. KnownNat p => Natural -> Z p -> Z p
+signum' n (Z (d:_)) =
   if d == 0 then 0
   else let p = fromIntegral $ natVal (Proxy @p)
-       in pow' (pow' 10 p) $ fromInteger' d
+       in pow' (pow' n p) $ fromInteger' d
