@@ -37,3 +37,9 @@ instance (KnownNat p, KnownNat n) => Eq (Qn p n) where
   (Qn (Q e1 (Z ds1))) == (Qn (Q e2 (Z ds2))) =
     let n = fromIntegral $ natVal (Proxy @n)
     in e1 == e2 && take n ds1 == take n ds2
+
+
+instance (KnownNat p, KnownNat n) => Fractional (Qn p n) where
+  recip (Qn q) = Qn $ recip q
+  (Qn q1) / (Qn q2) = Qn $ q1 / q2
+  fromRational = Qn . fromRational

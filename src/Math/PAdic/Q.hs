@@ -5,11 +5,16 @@
 
 module Math.PAdic.Q where
 
+import GHC.Natural
+import GHC.Real
 import GHC.TypeNats
+import Data.List
 import Data.Proxy
 
 import Math.PAdic.Z (Z(..))
 import qualified Math.PAdic.Z as Z
+
+import Math.NumberTheory.ArithmeticFunctions (totient)
 
 
 -- Represent a p-adic number in the form p^n*z where z is a p-adic integer.
@@ -23,6 +28,12 @@ instance KnownNat p => Num (Q p) where
   abs = abs'
   signum = undefined
   fromInteger = fromInteger'
+
+
+instance KnownNat p => Fractional (Q p) where
+  recip = undefined
+  (/) = undefined
+  fromRational = fromRational'
 
 
 -- Temporary version.
@@ -65,3 +76,34 @@ add (Q n1 (Z ds1)) (Q n2 (Z ds2)) =
 
 multiply :: forall p. KnownNat p => Q p -> Q p -> Q p
 multiply (Q n1 z1) (Q n2 z2) = Q (n1 + n2) (z1 * z2)
+
+
+-- Calculate the digits of the series 1/(1-p^n) = 1 + p^n + p^2n + ...
+denomDigits :: Natural -> [Integer]
+denomDigits n = unfoldr f 0
+  where f k = Just (if k `mod` n == 0 then 1 else 0, k+1)
+
+
+logP :: Integral a => a -> a -> a
+logP p d = go d 0
+  where go n k =
+          let (q, r) = n `divMod` p
+          in if r /= 0
+             then k
+             else go q (k+1)
+
+
+-- Takes advantage of the Rational implementation always keeping the ratio in
+-- lowest common form, so we only need to worry about powers of p in the
+-- denominator.
+fromRational' :: forall p. KnownNat p => Rational -> Q p
+fromRational' r@(n :% d) =
+  let p = fromIntegral $ natVal (Proxy @p)
+      k = fromIntegral $ totient d
+      e = fromIntegral $ logP p d
+      d' = d `div` (p^e)
+      d'' = (p^k - 1) `div` d'
+      n' = - n * d''
+      a = fromIntegral n'
+      b = Q (-e) (Z $ denomDigits k)
+  in a * b
