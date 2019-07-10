@@ -79,7 +79,7 @@ multiply (Q n1 z1) (Q n2 z2) = Q (n1 + n2) (z1 * z2)
 
 
 -- Calculate the digits of the series 1/(1-p^n) = 1 + p^n + p^2n + ...
-denomDigits :: Natural -> [Integer]
+denomDigits :: Natural -> [Natural]
 denomDigits n = unfoldr f 0
   where f k = Just (if k `mod` n == 0 then 1 else 0, k+1)
 
