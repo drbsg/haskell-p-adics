@@ -11,7 +11,7 @@ import Data.List (inits, unfoldr)
 import Data.Proxy
 
 
-data Z (p :: Nat) = Z [Natural]
+data Z (p :: Nat) = Z [Integer]
 
 
 -- Temporary version.
@@ -42,7 +42,7 @@ norm z = let p = fromIntegral $ natVal (Proxy @p)
 add :: forall p. KnownNat p => Z p -> Z p -> Z p
 add (Z digits1) (Z digits2) = Z $ go digits1 digits2 0
   where go (x:xs) (y:ys) carry =
-          let p = natVal (Proxy @p)
+          let p = fromIntegral $ natVal (Proxy @p)
               sum = x + y + carry
               (carry', sum') = sum `divMod` p
           in [sum'] ++ go xs ys carry'
@@ -53,7 +53,7 @@ multiply (Z digits1) (Z digits2) = Z $ go inits1 inits2 0
   where inits1 = tail $ inits digits1
         inits2 = fmap reverse . tail $ inits digits2
         go (x:xs) (y:ys) carry =
-          let p = natVal (Proxy @p)
+          let p = fromIntegral $ natVal (Proxy @p)
               s = carry + (sum $ zipWith (*) x y)
               (carry', sum') = s `divMod` p
           in [sum'] ++ go xs ys carry'
@@ -62,15 +62,15 @@ multiply (Z digits1) (Z digits2) = Z $ go inits1 inits2 0
 negate' :: forall p. KnownNat p => Z p -> Z p
 negate' (Z digits) = Z $ go digits 0
   where go (x:xs) carry =
-          let p = natVal (Proxy @p)
+          let p = fromIntegral $ natVal (Proxy @p)
               d = - x - carry
               (d', carry') = if d < 0 then (p + d, 1) else (d, 0)
           in [d'] ++ go xs carry'
 
 
 fromInteger' :: forall p. KnownNat p => Integer -> Z p
-fromInteger' n = Z $ unfoldr f (fromIntegral n)
-  where f a = let p = natVal (Proxy @p)
+fromInteger' n = Z $ unfoldr f n
+  where f a = let p = fromIntegral $ natVal (Proxy @p)
                   (q, r) = a `divMod` p
               in Just (r, q)
 
@@ -92,5 +92,5 @@ pow' n a | n == 0 = 1
 signum' :: forall p. KnownNat p => Natural -> Z p -> Z p
 signum' n (Z (d:_)) =
   if d == 0 then 0
-  else let p = natVal (Proxy @p)
-       in pow' (pow' n p) (fromInteger' $ toInteger d)
+  else let p = fromIntegral $ natVal (Proxy @p)
+       in pow' (pow' n p) $ fromInteger' d
